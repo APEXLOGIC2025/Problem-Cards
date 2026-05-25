@@ -1,1 +1,0 @@
-export default function App(){return <h1>Activity Engine Starter</h1>}
