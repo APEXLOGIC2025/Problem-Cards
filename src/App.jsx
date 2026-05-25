@@ -1,4 +1,5 @@
 import React,{useState} from "react";
+import {QRCodeCanvas} from "qrcode.react";
 
 export default function App(){
 
@@ -7,6 +8,9 @@ const [time,setTime]=useState(10)
 const [attempt,setAttempt]=useState(3)
 const [marks,setMarks]=useState(100)
 
+const [sessionId,setSessionId]=useState("")
+const [joinLink,setJoinLink]=useState("")
+
 function createSession(){
 
 const id=Math.random()
@@ -14,8 +18,11 @@ const id=Math.random()
 .substring(2,7)
 .toUpperCase()
 
-alert(
-"Session Created: "+id
+setSessionId(id)
+
+setJoinLink(
+window.location.origin+
+"/join/"+id
 )
 
 }
@@ -31,9 +38,7 @@ margin:"auto"
 }}
 >
 
-<h1>
-Activity Engine 🚀
-</h1>
+<h1>Activity Engine 🚀</h1>
 
 <div
 style={{
@@ -43,20 +48,14 @@ marginTop:"20px"
 }}
 >
 
-<h2>
-Host Dashboard
-</h2>
+<h2>Host Dashboard</h2>
 
-<p>
-Session Name
-</p>
+<p>Session Name</p>
 
 <input
 value={sessionName}
 onChange={(e)=>
-setSessionName(
-e.target.value
-)
+setSessionName(e.target.value)
 }
 style={{
 width:"100%",
@@ -64,66 +63,54 @@ padding:"10px"
 }}
 />
 
-<p>
-Time Limit(min)
-</p>
+<p>Time Limit(min)</p>
 
 <input
 type="number"
 value={time}
 onChange={(e)=>
-setTime(
-e.target.value
-)}
+setTime(e.target.value)
+}
 style={{
 width:"100%",
 padding:"10px"
 }}
 />
 
-<p>
-Max Attempts
-</p>
+<p>Max Attempts</p>
 
 <input
 type="number"
 value={attempt}
 onChange={(e)=>
-setAttempt(
-e.target.value
-)}
+setAttempt(e.target.value)
+}
 style={{
 width:"100%",
 padding:"10px"
 }}
 />
 
-<p>
-Total Marks
-</p>
+<p>Total Marks</p>
 
 <input
 type="number"
 value={marks}
 onChange={(e)=>
-setMarks(
-e.target.value
-)}
+setMarks(e.target.value)
+}
 style={{
 width:"100%",
 padding:"10px"
 }}
 />
 
-<p>
-Upload Excel
-</p>
+<p>Upload Excel</p>
 
-<input
-type="file"
-/>
+<input type="file"/>
 
-<br/><br/>
+<br/>
+<br/>
 
 <button
 onClick={createSession}
@@ -132,12 +119,51 @@ padding:"12px",
 cursor:"pointer"
 }}
 >
-
 Create Session
-
 </button>
 
 </div>
+
+{sessionId && (
+
+<div
+style={{
+marginTop:"30px",
+padding:"20px",
+border:"1px solid #ddd"
+}}
+>
+
+<h2>
+Session Created
+</h2>
+
+<p>
+Session ID:
+<b> {sessionId}</b>
+</p>
+
+<p>
+Participants scan:
+</p>
+
+<QRCodeCanvas
+value={joinLink}
+size={200}
+/>
+
+<p
+style={{
+marginTop:"20px",
+wordBreak:"break-word"
+}}
+>
+{joinLink}
+</p>
+
+</div>
+
+)}
 
 </div>
 
