@@ -1,68 +1,235 @@
-import React,{useState} from "react";
+import React,{useState,useEffect} from "react";
 import {QRCodeCanvas} from "qrcode.react";
 import * as XLSX from "xlsx";
-import {
-DndContext,
-useDraggable,
-useDroppable
-}
-from "@dnd-kit/core";
+import supabase from "./services/supabase";
+import JoinSession from "./pages/JoinSession";
 
 export default function App(){
 
-const [sessionName,setSessionName]=useState("")
-const [time,setTime]=useState(10)
-const [attempt,setAttempt]=useState(3)
-const [marks,setMarks]=useState(100)
+if(
+window.location.pathname
+.includes("/join/")
+){
 
-const [sessionId,setSessionId]=useState("")
-const [joinLink,setJoinLink]=useState("")
+return <JoinSession/>
 
-const [activities,setActivities]=useState([])
+}
 
-function createSession(){
+const[
+sessionName,
+setSessionName
+]=useState("")
 
-const id=Math.random()
+const[
+time,
+setTime
+]=useState(10)
+
+const[
+attempt,
+setAttempt
+]=useState(3)
+
+const[
+marks,
+setMarks
+]=useState(100)
+
+const[
+sessionId,
+setSessionId
+]=useState("")
+
+const[
+joinLink,
+setJoinLink
+]=useState("")
+
+const[
+activities,
+setActivities
+]=useState([])
+
+const[
+participants,
+setParticipants
+]=useState([])
+
+useEffect(()=>{
+
+const channel=
+supabase
+.channel(
+"participants"
+)
+.on(
+"postgres_changes",
+{
+event:"INSERT",
+schema:"public",
+table:"participants"
+},
+payload=>{
+
+setParticipants(
+prev=>[
+...prev,
+payload.new
+]
+)
+
+}
+)
+.subscribe()
+
+return()=>{
+
+supabase
+.removeChannel(
+channel
+)
+
+}
+
+},[])
+
+function handleExcel(e){
+
+const file=
+e.target.files[0]
+
+const reader=
+new FileReader()
+
+reader.onload=
+(evt)=>{
+
+const workbook=
+XLSX.read(
+evt.target.result,
+{
+type:"binary"
+}
+)
+
+const sheet=
+workbook.Sheets[
+workbook
+.SheetNames[0]
+]
+
+const data=
+XLSX.utils
+.sheet_to_json(
+sheet
+)
+
+setActivities(data)
+
+}
+
+reader
+.readAsBinaryString(
+file
+)
+
+}
+
+async function createSession(){
+
+const id=
+Math.random()
 .toString(36)
 .substring(2,7)
 .toUpperCase()
 
 setSessionId(id)
 
-setJoinLink(
+const link=
+
 window.location.origin+
 "/join/"+id
+
+setJoinLink(link)
+
+await supabase
+.from("sessions")
+.insert([{
+
+id:id,
+
+session_name:
+sessionName,
+
+time_limit:time,
+
+max_attempt:
+attempt,
+
+total_marks:
+marks
+
+}])
+
+
+for(
+let a of activities
+){
+
+await supabase
+.from(
+"activities"
 )
+.insert([{
+
+session_id:id,
+
+problem:
+a.Problem,
+
+right1:
+a.Right1||
+a["Right 1"],
+
+right2:
+a.Right2||
+a["Right 2"],
+
+right3:
+a.Right3||
+a["Right 3"],
+
+right4:
+a.Right4||
+a["Right 4"],
+
+option1:
+a.Option1||
+a["Option 1"],
+
+option2:
+a.Option2||
+a["Option 2"],
+
+option3:
+a.Option3||
+a["Option 3"],
+
+option4:
+a.Option4||
+a["Option 4"],
+
+option5:
+a.Option5||
+a["Option 5"]
+
+}])
 
 }
 
-function handleExcel(e){
-
-const file=e.target.files[0]
-
-const reader=new FileReader()
-
-reader.onload=(evt)=>{
-
-const workbook=
-XLSX.read(
-evt.target.result,
-{type:"binary"}
+alert(
+"Session Saved"
 )
-
-const sheet=
-workbook.Sheets[
-workbook.SheetNames[0]
-]
-
-const data=
-XLSX.utils.sheet_to_json(sheet)
-
-setActivities(data)
-
-}
-
-reader.readAsBinaryString(file)
 
 }
 
@@ -78,107 +245,101 @@ margin:"auto"
 >
 
 <h1>
+
 Activity Engine 🚀
+
 </h1>
 
-<div
-style={{
-border:"1px solid #ddd",
-padding:"20px"
-}}
->
-
-<h2>Host Dashboard</h2>
-
-<p>Session Name</p>
-
 <input
-value={sessionName}
-onChange={(e)=>
-setSessionName(e.target.value)}
-style={{
-width:"100%",
-padding:"10px"
-}}
+placeholder=
+"Session Name"
+value={
+sessionName
+}
+onChange={
+e=>
+setSessionName(
+e.target.value
+)
+}
 />
 
-<p>Time Limit</p>
+<br/><br/>
 
 <input
 type="number"
 value={time}
-onChange={(e)=>
-setTime(e.target.value)}
-style={{
-width:"100%",
-padding:"10px"
-}}
+onChange={
+e=>
+setTime(
+e.target.value
+)
+}
 />
 
-<p>Max Attempts</p>
+<br/><br/>
 
 <input
 type="number"
 value={attempt}
-onChange={(e)=>
-setAttempt(e.target.value)}
-style={{
-width:"100%",
-padding:"10px"
-}}
+onChange={
+e=>
+setAttempt(
+e.target.value
+)
+}
 />
 
-<p>Total Marks</p>
+<br/><br/>
 
 <input
 type="number"
 value={marks}
-onChange={(e)=>
-setMarks(e.target.value)}
-style={{
-width:"100%",
-padding:"10px"
-}}
+onChange={
+e=>
+setMarks(
+e.target.value
+)
+}
 />
 
-<p>Upload Excel</p>
+<br/><br/>
 
 <input
 type="file"
-onChange={handleExcel}
+onChange={
+handleExcel
+}
 />
 
 <br/><br/>
 
 <button
-onClick={createSession}>
-Create Session
-</button>
-
-</div>
-
-{sessionId && (
-
-<div
-style={{
-border:"1px solid #ddd",
-padding:"20px",
-marginTop:"20px"
-}}
+onClick={
+createSession
+}
 >
 
-<h2>Session Created</h2>
+Create Session
 
-<p>
+</button>
 
-Session ID:
+{sessionId&&(
 
-<b>{sessionId}</b>
+<div>
 
-</p>
+<h2>
+
+Session:
+
+{sessionId}
+
+</h2>
 
 <QRCodeCanvas
-value={joinLink}
+value={
+joinLink
+}
 />
 
 <p>
@@ -191,63 +352,28 @@ value={joinLink}
 
 )}
 
-{activities.length>0 &&(
-
-<div
-style={{
-marginTop:"20px",
-border:"1px solid #ddd",
-padding:"20px"
-}}
->
-
 <h2>
-Loaded Activities
+
+Participants Live
+
 </h2>
 
 {
 
-activities.map(
-(a,i)=>(
+participants.map(
+(p,i)=>
 
 <div
 key={i}
-style={{
-marginBottom:"20px"
-}}
 >
 
-<h3>
-
-{a.Problem}
-
-</h3>
-
-<p>
-
-Correct:
-
-{a.Right1 || a["Right 1"]}{" "}
-
-{a.Right2 || a["Right 2"]}{" "}
-
-{a.Right3 || a["Right 3"]}{" "}
-
-{a.Right4 || a["Right 4"]}
-
-</p>
+{p.team_name}
 
 </div>
-
-)
 
 )
 
 }
-
-</div>
-
-)}
 
 </div>
 
