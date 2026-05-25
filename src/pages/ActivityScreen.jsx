@@ -143,6 +143,20 @@ setPlaced
 =
 useState({})
 
+const[
+teamName,
+setTeamName
+]=useState(
+localStorage.getItem(
+"team"
+)||"Unknown"
+)
+
+const[
+attemptNo,
+setAttemptNo
+]=useState(1)
+
 const id=
 window.location
 .pathname
@@ -195,6 +209,51 @@ active.id
 }))
 
 }
+
+}
+
+async function submitAnswers(){
+
+await supabase
+.from("submissions")
+.insert([{
+
+participant:
+teamName,
+
+session_id:
+id,
+
+attempt:
+attemptNo,
+
+score:0,
+
+time_taken:0
+
+}])
+
+await supabase
+.from("participants")
+.update({
+
+team_name:
+teamName+
+" | submitted"
+
+})
+.eq(
+"team_name",
+teamName
+)
+
+alert(
+"Submitted"
+)
+
+setAttemptNo(
+attemptNo+1
+)
 
 }
 
@@ -348,9 +407,21 @@ label={o}
 
 }
 
-<button>
+<button
+onClick={
+submitAnswers
+}
 
-Submit
+style={{
+
+padding:"12px",
+
+fontSize:"18px"
+
+}}
+>
+
+Submit Answers
 
 </button>
 
