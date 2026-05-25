@@ -221,11 +221,13 @@ marginBottom:"20px"
 
 Correct:
 
-{a.Right1}
+{a.Right1 || a["Right 1"]}{" "}
 
-{a.Right2}
+{a.Right2 || a["Right 2"]}{" "}
 
-{a.Right3}
+{a.Right3 || a["Right 3"]}{" "}
+
+{a.Right4 || a["Right 4"]}
 
 </p>
 
