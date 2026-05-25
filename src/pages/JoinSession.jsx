@@ -29,7 +29,8 @@ session_id:session,
 team_name:team
 }])
 
-alert("Joined Successfully")
+window.location=
+"/activity/"+session
 
 }
 
