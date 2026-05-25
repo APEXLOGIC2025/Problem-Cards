@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function App() {
   return (
     <div style={{
@@ -16,5 +18,5 @@ export default function App() {
         Host Dashboard Coming Soon
       </div>
     </div>
-  )
+  );
 }
