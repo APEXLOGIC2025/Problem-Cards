@@ -1,6 +1,12 @@
 import React,{useState} from "react";
 import {QRCodeCanvas} from "qrcode.react";
 import * as XLSX from "xlsx";
+import {
+DndContext,
+useDraggable,
+useDroppable
+}
+from "@dnd-kit/core";
 
 export default function App(){
 
