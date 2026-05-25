@@ -23,16 +23,19 @@ transform
 =
 useDraggable({id})
 
-const style=transform
-?{
-transform:
-`translate3d(
+const style = {
+
+transform: transform
+? `translate3d(
 ${transform.x}px,
 ${transform.y}px,
 0
 )`
+:undefined,
+
+touchAction:"none"
+
 }
-:{}
 
 return(
 
@@ -109,6 +112,23 @@ justifyContent:"center"
 
 export default function ActivityScreen(){
 
+const sensors =
+useSensors(
+
+useSensor(
+PointerSensor
+),
+
+useSensor(
+TouchSensor,{
+activationConstraint:{
+delay:100,
+tolerance:5
+}
+})
+
+)
+
 const[
 questions,
 setQuestions
@@ -181,9 +201,13 @@ active.id
 return(
 
 <DndContext
+
+sensors={sensors}
+
 onDragEnd={
 handleDragEnd
 }
+
 >
 
 <div
