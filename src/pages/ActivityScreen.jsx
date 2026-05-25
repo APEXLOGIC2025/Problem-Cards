@@ -4,7 +4,11 @@ import supabase from "../services/supabase";
 import {
 DndContext,
 useDraggable,
-useDroppable
+useDroppable,
+PointerSensor,
+TouchSensor,
+useSensor,
+useSensors
 }
 from "@dnd-kit/core";
 
