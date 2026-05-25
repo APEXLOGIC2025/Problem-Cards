@@ -4,6 +4,9 @@ import * as XLSX from "xlsx";
 import supabase from "./services/supabase";
 import JoinSession from "./pages/JoinSession";
 
+import ActivityScreen
+from "./pages/ActivityScreen";
+
 export default function App(){
 
 if(
@@ -12,6 +15,15 @@ window.location.pathname
 ){
 
 return <JoinSession/>
+
+}
+
+if(
+window.location.pathname
+.includes("/activity/")
+){
+
+return <ActivityScreen/>
 
 }
 
