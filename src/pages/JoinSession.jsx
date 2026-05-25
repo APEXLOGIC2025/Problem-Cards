@@ -22,6 +22,11 @@ async function join(){
 
 if(!team)return
 
+localStorage.setItem(
+"team",
+team
+)
+
 await supabase
 .from("participants")
 .insert([{
