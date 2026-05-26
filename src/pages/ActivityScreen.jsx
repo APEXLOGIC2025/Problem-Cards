@@ -386,13 +386,21 @@ q.id+
 {
 
 options.map(
-o=>
+(o,optIndex)=>
 
 <DragCard
 
-key={o}
+key={
+q.id+"-"+optIndex
+}
 
-id={o}
+id={
+q.id+
+"-"+
+optIndex+
+"-"+
+o
+}
 
 label={o}
 
