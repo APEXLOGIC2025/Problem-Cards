@@ -220,6 +220,11 @@ actualLabel
 
 async function submitAnswers(){
 
+const{
+data,
+error
+}
+=
 await supabase
 .from("submissions")
 .insert([{
@@ -278,6 +283,11 @@ return
 
 }
 
+console.log(
+data,
+error
+)  
+  
 alert(
 "Submitted Successfully"
 )
