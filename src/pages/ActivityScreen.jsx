@@ -198,13 +198,19 @@ over
 
 if(over){
 
+const actualLabel=
+active.id
+.split("-")
+.slice(2)
+.join("-")
+
 setPlaced(
 prev=>({
 
 ...prev,
 
 [over.id]:
-active.id
+actualLabel
 
 }))
 
