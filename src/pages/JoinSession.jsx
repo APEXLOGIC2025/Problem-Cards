@@ -27,16 +27,40 @@ localStorage.setItem(
 team
 )
 
+const {data,error}
+=
 await supabase
 .from("participants")
-.insert([{
+.insert([
+{
 session_id:session,
 team_name:team
-}])
+}
+])
+
+console.log(
+"JOIN:",
+data,
+error
+)
+
+if(error){
+
+alert(
+error.message
+)
+
+return
+
+}
+
+localStorage.setItem(
+"team",
+team
+)
 
 window.location=
 "/activity/"+session
-
 }
 
 return(
