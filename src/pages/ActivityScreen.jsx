@@ -227,9 +227,16 @@ id,
 attempt:
 attemptNo,
 
-score:0,
+score:
+100-
+(
+(attemptNo-1)*20
+),
 
-time_taken:0
+time_taken:
+Math.floor(
+Date.now()/1000
+)
 
 }])
 
