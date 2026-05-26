@@ -240,6 +240,10 @@ Date.now()/1000
 
 }])
 
+const{
+error
+}
+=
 await supabase
 .from("participants")
 .update({
@@ -250,8 +254,26 @@ teamName+
 
 })
 .eq(
+"session_id",
+id
+)
+.eq(
 "team_name",
 teamName
+)
+
+if(error){
+
+alert(
+error.message
+)
+
+return
+
+}
+
+alert(
+"Submitted Successfully"
 )
 
 alert(
