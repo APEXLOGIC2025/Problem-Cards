@@ -69,6 +69,37 @@ setParticipants
 
 useEffect(()=>{
 
+const interval=
+
+setInterval(
+async()=>{
+
+if(!sessionId)return
+
+let {data}
+=
+await supabase
+.from("participants")
+.select("*")
+.eq(
+"session_id",
+sessionId
+)
+
+setParticipants(
+data||[]
+)
+
+},2000)
+
+return()=>clearInterval(
+interval
+)
+
+},[sessionId])
+
+useEffect(()=>{
+
 const channel=
 supabase
 .channel(
