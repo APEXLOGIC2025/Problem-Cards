@@ -77,17 +77,23 @@ supabase
 .on(
 "postgres_changes",
 {
-event:"INSERT",
+event:"*",
 schema:"public",
 table:"participants"
 },
-payload=>{
+async ()=>{
+
+let {data}=
+await supabase
+.from("participants")
+.select("*")
+.eq(
+"session_id",
+sessionId
+)
 
 setParticipants(
-prev=>[
-...prev,
-payload.new
-]
+data||[]
 )
 
 }
@@ -104,6 +110,31 @@ channel
 }
 
 },[])
+
+useEffect(()=>{
+
+if(!sessionId)return
+
+async function loadParticipants(){
+
+let {data}=
+await supabase
+.from("participants")
+.select("*")
+.eq(
+"session_id",
+sessionId
+)
+
+setParticipants(
+data||[]
+)
+
+}
+
+loadParticipants()
+
+},[sessionId])
 
 function handleExcel(e){
 
