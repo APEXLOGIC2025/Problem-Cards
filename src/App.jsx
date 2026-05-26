@@ -113,11 +113,12 @@ channel
 
 useEffect(()=>{
 
-if(!sessionId)return
-
 async function loadParticipants(){
 
-let {data}=
+if(!sessionId)return
+
+let {data}
+=
 await supabase
 .from("participants")
 .select("*")
@@ -133,6 +134,38 @@ data||[]
 }
 
 loadParticipants()
+
+const channel=
+supabase
+
+.channel(
+"participants-live"
+)
+
+.on(
+"postgres_changes",
+{
+event:"*",
+schema:"public",
+table:"participants"
+},
+()=>{
+
+loadParticipants()
+
+}
+)
+
+.subscribe()
+
+return()=>{
+
+supabase
+.removeChannel(
+channel
+)
+
+}
 
 },[sessionId])
 
