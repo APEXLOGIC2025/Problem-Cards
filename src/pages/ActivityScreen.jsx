@@ -1,7 +1,7 @@
 import React,{useState,useEffect} from "react";
 import supabase from "../services/supabase";
 
-import{
+import {
 DndContext,
 useDraggable,
 useDroppable,
@@ -19,7 +19,9 @@ attributes,
 listeners,
 setNodeRef,
 transform
-}=useDraggable({id})
+}
+=
+useDraggable({id})
 
 const style={
 
@@ -40,7 +42,9 @@ touchAction:"none"
 return(
 
 <div
+
 ref={setNodeRef}
+
 {...listeners}
 {...attributes}
 
@@ -56,6 +60,7 @@ borderRadius:"8px",
 ...style
 
 }}
+
 >
 
 {label}
@@ -71,19 +76,20 @@ function DropBox({id,value}){
 
 const{
 setNodeRef
-}=useDroppable({
-id
-})
+}
+=
+useDroppable({id})
 
 return(
 
 <div
+
 ref={setNodeRef}
 
 style={{
 
-width:"140px",
-height:"50px",
+width:"160px",
+height:"55px",
 
 border:
 "2px dashed gray",
@@ -97,6 +103,7 @@ alignItems:"center",
 justifyContent:"center"
 
 }}
+
 >
 
 {value||"Drop Here"}
@@ -110,6 +117,7 @@ justifyContent:"center"
 
 
 export default function ActivityScreen(){
+
 
 const sensors=
 useSensors(
@@ -127,7 +135,6 @@ tolerance:5
 })
 
 )
-
 
 const[
 questions,
@@ -154,18 +161,12 @@ useState(1)
 
 
 const[
-teamName
+submitted,
+setSubmitted
 ]
 =
-useState(
+useState(false)
 
-localStorage.getItem(
-"team"
-)
-||
-"Unknown"
-
-)
 
 
 const id=
@@ -175,10 +176,33 @@ window.location
 .pop()
 
 
+const teamName=
+localStorage.getItem(
+"team"
+)
+||
+"Unknown"
+
+
 
 useEffect(()=>{
 
 load()
+
+if(
+!localStorage.getItem(
+"startTime"
+)
+){
+
+localStorage.setItem(
+"startTime",
+Math.floor(
+Date.now()/1000
+)
+)
+
+}
 
 },[])
 
@@ -218,7 +242,10 @@ event
 const{
 active,
 over
-}=event
+}
+=
+event
+
 
 if(over){
 
@@ -231,6 +258,7 @@ active.id
 
 
 setPlaced(
+
 prev=>({
 
 ...prev,
@@ -238,7 +266,9 @@ prev=>({
 [over.id]:
 actualLabel
 
-}))
+})
+
+)
 
 }
 
@@ -248,12 +278,24 @@ actualLabel
 
 async function submitAnswers(){
 
+
+if(submitted){
+
+alert(
+"Already submitted"
+)
+
+return
+
+}
+
+
 let correct=0
+
 let total=0
 
 
-questions.forEach(
-q=>{
+questions.forEach(q=>{
 
 const answers=[
 
@@ -274,11 +316,9 @@ total++
 const key=
 q.id+"-"+i
 
-const selected=
-placed[key]
 
 if(
-selected===a
+placed[key]===a
 ){
 
 correct++
@@ -290,38 +330,152 @@ correct++
 })
 
 
-const score=
+const allCorrect=
+correct===total
 
-Math.round(
 
-(correct/total)
+
+let score=0
+
+
+if(allCorrect){
+
+let remaining=0
+
+
+if(
+attemptNo===1
+)
+remaining=100
+
+
+if(
+attemptNo===2
+)
+remaining=50
+
+
+if(
+attemptNo===3
+)
+remaining=25
+
+
+
+const attemptMarks=
+
+remaining*
+0.40
+
+
+
+const{
+data:session
+}
+=
+await supabase
+
+.from(
+"sessions"
+)
+
+.select("*")
+
+.eq(
+"id",
+id
+)
+
+.single()
+
+
+
+const allowedTime=
+
+session.time_limit
 *
-100
+60
 
+
+
+const startTime=
+
+Number(
+localStorage.getItem(
+"startTime"
+)
 )
 
 
-console.log(
-"Correct:",
-correct
+
+const used=
+
+Math.floor(
+Date.now()/1000
+)
+-
+startTime
+
+
+
+const ratio=
+used/
+allowedTime
+
+
+let timeMarks=
+remaining*0.60
+
+
+
+if(
+ratio<=0.25
+){
+
+timeMarks=
+timeMarks
+
+}
+
+else if(
+ratio<=0.50
+){
+
+timeMarks=
+timeMarks/2
+
+}
+
+else{
+
+timeMarks=
+timeMarks/4
+
+}
+
+
+
+score=
+
+attemptMarks+
+timeMarks
+
+
+score=
+Number(
+score.toFixed(1)
 )
 
-console.log(
-"Total:",
-total
-)
-
-console.log(
-"Score:",
-score
-)
+}
 
 
 
 await supabase
+
 .from(
 "submissions"
 )
+
 .insert([{
 
 participant:
@@ -344,7 +498,12 @@ Date.now()/1000
 }])
 
 
+if(
+allCorrect
+){
+
 await supabase
+
 .from(
 "participants"
 )
@@ -369,18 +528,27 @@ teamName
 )
 
 
-
-alert(
-
-"Submitted\nScore: "
-+score+"%"
-
+setSubmitted(
+true
 )
 
+alert(
+"Submitted Successfully Score:"+score
+)
+
+}
+
+else{
+
+alert(
+"Wrong submission. Try next attempt."
+)
 
 setAttemptNo(
 attemptNo+1
 )
+
+}
 
 }
 
@@ -409,6 +577,14 @@ padding:"20px"
 Activity
 
 </h1>
+
+
+<h3>
+
+Attempt:
+{attemptNo}/3
+
+</h3>
 
 
 {
@@ -456,6 +632,7 @@ q.right4
 return(
 
 <div
+
 key={index}
 
 style={{
@@ -469,6 +646,7 @@ marginBottom:
 "30px"
 
 }}
+
 >
 
 <h2>
@@ -492,9 +670,11 @@ q.id+"-"+i
 }
 
 value={
+
 placed[
 q.id+"-"+i
 ]
+
 }
 
 />
@@ -502,7 +682,6 @@ q.id+"-"+i
 )
 
 }
-
 
 
 <div>
@@ -528,7 +707,9 @@ optIndex+
 o
 }
 
-label={o}
+label={
+o
+}
 
 />
 
@@ -538,14 +719,16 @@ label={o}
 
 </div>
 
+
 </div>
 
 )
 
-})
-
 }
 
+)
+
+}
 
 
 <button
@@ -567,6 +750,7 @@ fontSize:"18px"
 Submit Answers
 
 </button>
+
 
 </div>
 
