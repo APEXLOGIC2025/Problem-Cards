@@ -1,31 +1,19 @@
 import React,{useState,useEffect} from "react";
 import {QRCodeCanvas} from "qrcode.react";
 import * as XLSX from "xlsx";
-import supabase from "./services/supabase";
-import JoinSession from "./pages/JoinSession";
 
-import ActivityScreen
-from "./pages/ActivityScreen";
+import supabase from "./services/supabase";
+
+import JoinSession from "./pages/JoinSession";
+import ActivityScreen from "./pages/ActivityScreen";
 
 export default function App(){
 
-if(
-window.location.pathname
-.includes("/join/")
-){
+const isJoin=
+window.location.pathname.includes("/join/")
 
-return <JoinSession/>
-
-}
-
-if(
-window.location.pathname
-.includes("/activity/")
-){
-
-return <ActivityScreen/>
-
-}
+const isActivity=
+window.location.pathname.includes("/activity/")
 
 const[
 sessionName,
@@ -51,25 +39,11 @@ const[
 sessionId,
 setSessionId
 ]=useState("")
-  
+
 const[
 joinLink,
 setJoinLink
 ]=useState("")
-
-useEffect(()=>{
-
-if(sessionId){
-
-setJoinLink(
-window.location.origin+
-"/join/"+
-sessionId
-)
-
-}
-
-},[sessionId])
 
 const[
 activities,
@@ -81,10 +55,44 @@ participants,
 setParticipants
 ]=useState([])
 
+
+useEffect(()=>{
+
+const saved=
+localStorage.getItem(
+"activeSession"
+)
+
+if(saved){
+
+setSessionId(saved)
+
+}
+
+},[])
+
+
+useEffect(()=>{
+
+if(sessionId){
+
+setJoinLink(
+
+window.location.origin+
+"/join/"+
+sessionId
+
+)
+
+}
+
+},[sessionId])
+
+
 useEffect(()=>{
 
 console.log(
-"useEffect fired",
+"useEffect fired:",
 sessionId
 )
 
@@ -97,7 +105,7 @@ return
 async function loadParticipants(){
 
 console.log(
-"Loading for:",
+"Loading:",
 sessionId
 )
 
@@ -119,12 +127,16 @@ await supabase
 sessionId
 )
 
+.order(
+"joined_at",
+{
+ascending:true
+}
+)
+
 if(error){
 
-console.log(
-"ERROR:",
-error
-)
+console.log(error)
 
 return
 
@@ -144,7 +156,6 @@ data||[]
 loadParticipants()
 
 const interval=
-
 setInterval(
 loadParticipants,
 1000
@@ -159,11 +170,14 @@ interval
 }
 
 },[sessionId])
-  
+
+
 function handleExcel(e){
 
 const file=
 e.target.files[0]
+
+if(!file)return
 
 const reader=
 new FileReader()
@@ -181,13 +195,11 @@ type:"binary"
 
 const sheet=
 workbook.Sheets[
-workbook
-.SheetNames[0]
+workbook.SheetNames[0]
 ]
 
 const data=
-XLSX.utils
-.sheet_to_json(
+XLSX.utils.sheet_to_json(
 sheet
 )
 
@@ -195,12 +207,12 @@ setActivities(data)
 
 }
 
-reader
-.readAsBinaryString(
+reader.readAsBinaryString(
 file
 )
 
 }
+
 
 async function createSession(){
 
@@ -217,17 +229,6 @@ id
 
 setSessionId(id)
 
-console.log(
-"NEW SESSION:",
-id
-)
-const link=
-
-window.location.origin+
-"/join/"+id
-
-setJoinLink(link)
-
 await supabase
 .from("sessions")
 .insert([{
@@ -237,7 +238,8 @@ id:id,
 session_name:
 sessionName,
 
-time_limit:time,
+time_limit:
+time,
 
 max_attempt:
 attempt,
@@ -309,6 +311,20 @@ alert(
 
 }
 
+
+if(isJoin){
+
+return <JoinSession/>
+
+}
+
+if(isActivity){
+
+return <ActivityScreen/>
+
+}
+
+
 return(
 
 <div
@@ -326,12 +342,15 @@ Activity Engine 🚀
 
 </h1>
 
+
 <input
 placeholder=
 "Session Name"
+
 value={
 sessionName
 }
+
 onChange={
 e=>
 setSessionName(
@@ -342,9 +361,12 @@ e.target.value
 
 <br/><br/>
 
+
 <input
 type="number"
+
 value={time}
+
 onChange={
 e=>
 setTime(
@@ -355,9 +377,12 @@ e.target.value
 
 <br/><br/>
 
+
 <input
 type="number"
+
 value={attempt}
+
 onChange={
 e=>
 setAttempt(
@@ -368,9 +393,12 @@ e.target.value
 
 <br/><br/>
 
+
 <input
 type="number"
+
 value={marks}
+
 onChange={
 e=>
 setMarks(
@@ -381,14 +409,14 @@ e.target.value
 
 <br/><br/>
 
+
 <input
 type="file"
-onChange={
-handleExcel
-}
+onChange={handleExcel}
 />
 
 <br/><br/>
+
 
 <button
 onClick={
@@ -400,14 +428,15 @@ Create Session
 
 </button>
 
-{sessionId&&(
+
+{
+sessionId&&(
 
 <div>
 
 <h2>
 
 Session:
-
 {sessionId}
 
 </h2>
@@ -426,7 +455,9 @@ joinLink
 
 </div>
 
-)}
+)
+}
+
 
 <h2>
 
@@ -443,10 +474,11 @@ Current Session:
 
 <div>
 
-Participant Count:
+Count:
 {participants.length}
 
 </div>
+
 
 {
 participants.map(
@@ -457,8 +489,9 @@ key={i}
 style={{
 
 padding:"10px",
-margin:"5px",
-background:"#f4f4f4"
+margin:"10px",
+border:
+"1px solid #ddd"
 
 }}
 >
@@ -468,7 +501,6 @@ background:"#f4f4f4"
 </div>
 
 )
-
 }
 
 </div>
