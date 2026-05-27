@@ -1,7 +1,7 @@
 import React,{useState,useEffect} from "react";
 import supabase from "../services/supabase";
 
-import {
+import{
 DndContext,
 useDraggable,
 useDroppable,
@@ -14,24 +14,24 @@ from "@dnd-kit/core";
 
 function DragCard({id,label}){
 
-const {
+const{
 attributes,
 listeners,
 setNodeRef,
 transform
-}
-=
-useDraggable({id})
+}=useDraggable({id})
 
-const style = {
+const style={
 
-transform: transform
-? `translate3d(
+transform:transform
+?
+`translate3d(
 ${transform.x}px,
 ${transform.y}px,
 0
 )`
-:undefined,
+:
+undefined,
 
 touchAction:"none"
 
@@ -56,7 +56,6 @@ borderRadius:"8px",
 ...style
 
 }}
-
 >
 
 {label}
@@ -67,13 +66,12 @@ borderRadius:"8px",
 
 }
 
+
 function DropBox({id,value}){
 
 const{
 setNodeRef
-}
-=
-useDroppable({
+}=useDroppable({
 id
 })
 
@@ -99,7 +97,6 @@ alignItems:"center",
 justifyContent:"center"
 
 }}
-
 >
 
 {value||"Drop Here"}
@@ -110,9 +107,11 @@ justifyContent:"center"
 
 }
 
+
+
 export default function ActivityScreen(){
 
-const sensors =
+const sensors=
 useSensors(
 
 useSensor(
@@ -129,12 +128,14 @@ tolerance:5
 
 )
 
+
 const[
 questions,
 setQuestions
 ]
 =
 useState([])
+
 
 const[
 placed,
@@ -143,19 +144,29 @@ setPlaced
 =
 useState({})
 
-const[
-teamName,
-setTeamName
-]=useState(
-localStorage.getItem(
-"team"
-)||"Unknown"
-)
 
 const[
 attemptNo,
 setAttemptNo
-]=useState(1)
+]
+=
+useState(1)
+
+
+const[
+teamName
+]
+=
+useState(
+
+localStorage.getItem(
+"team"
+)
+||
+"Unknown"
+
+)
+
 
 const id=
 window.location
@@ -163,11 +174,15 @@ window.location
 .split("/")
 .pop()
 
+
+
 useEffect(()=>{
 
 load()
 
 },[])
+
+
 
 async function load(){
 
@@ -176,16 +191,25 @@ data
 }
 =
 await supabase
-.from("activities")
+
+.from(
+"activities"
+)
+
 .select("*")
+
 .eq(
 "session_id",
 id
 )
 
-setQuestions(data)
+setQuestions(
+data||[]
+)
 
 }
+
+
 
 function handleDragEnd(
 event
@@ -199,10 +223,12 @@ over
 if(over){
 
 const actualLabel=
+
 active.id
 .split("-")
 .slice(2)
 .join("-")
+
 
 setPlaced(
 prev=>({
@@ -218,15 +244,84 @@ actualLabel
 
 }
 
+
+
 async function submitAnswers(){
 
-const{
-data,
-error
+let correct=0
+let total=0
+
+
+questions.forEach(
+q=>{
+
+const answers=[
+
+q.right1,
+q.right2,
+q.right3,
+q.right4
+
+]
+.filter(Boolean)
+
+
+answers.forEach(
+(a,i)=>{
+
+total++
+
+const key=
+q.id+"-"+i
+
+const selected=
+placed[key]
+
+if(
+selected===a
+){
+
+correct++
+
 }
-=
+
+})
+
+})
+
+
+const score=
+
+Math.round(
+
+(correct/total)
+*
+100
+
+)
+
+
+console.log(
+"Correct:",
+correct
+)
+
+console.log(
+"Total:",
+total
+)
+
+console.log(
+"Score:",
+score
+)
+
+
+
 await supabase
-.from("submissions")
+.from(
+"submissions"
+)
 .insert([{
 
 participant:
@@ -239,10 +334,7 @@ attempt:
 attemptNo,
 
 score:
-100-
-(
-(attemptNo-1)*20
-),
+score,
 
 time_taken:
 Math.floor(
@@ -251,56 +343,48 @@ Date.now()/1000
 
 }])
 
-const{
-error
-}
-=
+
 await supabase
-.from("participants")
+.from(
+"participants"
+)
+
 .update({
 
 team_name:
+
 teamName+
 " | submitted"
 
 })
+
 .eq(
 "session_id",
 id
 )
+
 .eq(
 "team_name",
 teamName
 )
 
-if(error){
+
 
 alert(
-error.message
+
+"Submitted\nScore: "
++score+"%"
+
 )
 
-return
-
-}
-
-console.log(
-data,
-error
-)  
-  
-alert(
-"Submitted Successfully"
-)
-
-alert(
-"Submitted"
-)
 
 setAttemptNo(
 attemptNo+1
 )
 
 }
+
+
 
 return(
 
@@ -326,10 +410,12 @@ Activity
 
 </h1>
 
+
 {
 
 questions.map(
 (q,index)=>{
+
 
 const options=[
 
@@ -352,6 +438,8 @@ q.option5
 ()=>Math.random()-0.5
 )
 
+
+
 const answers=[
 
 q.right1,
@@ -363,14 +451,15 @@ q.right4
 
 .filter(Boolean)
 
+
+
 return(
 
 <div
 key={index}
 
-style={
+style={{
 
-{
 border:
 "1px solid #ddd",
 
@@ -378,10 +467,8 @@ padding:"20px",
 
 marginBottom:
 "30px"
-}
 
-}
-
+}}
 >
 
 <h2>
@@ -389,6 +476,7 @@ marginBottom:
 {q.problem}
 
 </h2>
+
 
 {
 
@@ -400,17 +488,13 @@ answers.map(
 key={i}
 
 id={
-q.id+
-"-"+i
+q.id+"-"+i
 }
 
 value={
-
 placed[
-q.id+
-"-"+i
+q.id+"-"+i
 ]
-
 }
 
 />
@@ -418,6 +502,8 @@ q.id+
 )
 
 }
+
+
 
 <div>
 
@@ -429,7 +515,9 @@ options.map(
 <DragCard
 
 key={
-q.id+"-"+optIndex
+q.id+
+"-"+
+optIndex
 }
 
 id={
@@ -454,13 +542,14 @@ label={o}
 
 )
 
-}
-
-)
+})
 
 }
+
+
 
 <button
+
 onClick={
 submitAnswers
 }
@@ -472,6 +561,7 @@ padding:"12px",
 fontSize:"18px"
 
 }}
+
 >
 
 Submit Answers
