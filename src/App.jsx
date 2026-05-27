@@ -50,13 +50,8 @@ setMarks
 const[
 sessionId,
 setSessionId
-]=useState(
-
-localStorage.getItem(
-"activeSession"
-)||""
-
-)
+]=useState("")
+  
 const[
 joinLink,
 setJoinLink
@@ -87,6 +82,11 @@ setParticipants
 ]=useState([])
 
 useEffect(()=>{
+
+console.log(
+"useEffect fired",
+sessionId
+)
 
 if(!sessionId){
 
@@ -122,6 +122,7 @@ sessionId
 if(error){
 
 console.log(
+"ERROR:",
 error
 )
 
@@ -209,13 +210,17 @@ Math.random()
 .substring(2,7)
 .toUpperCase()
 
-setSessionId(id)
-
 localStorage.setItem(
 "activeSession",
 id
 )
 
+setSessionId(id)
+
+console.log(
+"NEW SESSION:",
+id
+)
 const link=
 
 window.location.origin+
