@@ -62,6 +62,20 @@ joinLink,
 setJoinLink
 ]=useState("")
 
+useEffect(()=>{
+
+if(sessionId){
+
+setJoinLink(
+window.location.origin+
+"/join/"+
+sessionId
+)
+
+}
+
+},[sessionId])
+
 const[
 activities,
 setActivities
@@ -78,10 +92,25 @@ if(!sessionId) return
 
 async function loadParticipants(){
 
-const {data}=await supabase
+const {data,error}=await supabase
 .from("participants")
 .select("*")
-.eq("session_id",sessionId)
+.eq(
+"session_id",
+sessionId
+)
+.order(
+"joined_at",
+{ascending:true}
+)
+
+if(error){
+
+console.log(error)
+
+return
+
+}
 
 setParticipants(data||[])
 
@@ -91,29 +120,43 @@ loadParticipants()
 
 const channel=
 supabase
-.channel("live-room")
+
+.channel(
+"participants-"+sessionId
+)
 
 .on(
 "postgres_changes",
 {
 event:"*",
 schema:"public",
-table:"participants"
+table:"participants",
+filter:`session_id=eq.${sessionId}`
 },
-()=>{
+(payload)=>{
+
+console.log(
+"Realtime:",
+payload
+)
+
 loadParticipants()
+
 }
 )
 
 .subscribe()
 
-return ()=>{
+return()=>{
 
-supabase.removeChannel(channel)
+supabase.removeChannel(
+channel
+)
 
 }
 
 },[sessionId])
+  
 function handleExcel(e){
 
 const file=
@@ -383,6 +426,13 @@ joinLink
 Participants Live
 
 </h2>
+
+<p>
+
+Count:
+{participants.length}
+
+</p>
 
 <pre>
 
