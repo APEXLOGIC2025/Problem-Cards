@@ -74,57 +74,42 @@ setParticipants
 
 useEffect(()=>{
 
-if(!sessionId)return
+if(!sessionId) return
 
 async function loadParticipants(){
 
-let {data,error}
-=
-await supabase
-
-.from(
-"participants"
-)
-
+const {data}=await supabase
+.from("participants")
 .select("*")
+.eq("session_id",sessionId)
 
-.eq(
-"session_id",
-sessionId)
-
-.order(
-"joined_at",
-{
-ascending:true
-})
-
-if(error){
-
-console.log(error)
-
-return
-
-}
-
-setParticipants(
-data||[]
-)
+setParticipants(data||[])
 
 }
 
 loadParticipants()
 
-const interval=
-setInterval(
-loadParticipants,
-2000
+const channel=
+supabase
+.channel("live-room")
+
+.on(
+"postgres_changes",
+{
+event:"*",
+schema:"public",
+table:"participants"
+},
+()=>{
+loadParticipants()
+}
 )
 
-return()=>{
+.subscribe()
 
-clearInterval(
-interval
-)
+return ()=>{
+
+supabase.removeChannel(channel)
 
 }
 
