@@ -88,69 +88,71 @@ setParticipants
 
 useEffect(()=>{
 
-if(!sessionId) return
-
-async function loadParticipants(){
-
-const {data,error}=await supabase
-.from("participants")
-.select("*")
-.eq(
-"session_id",
-sessionId
-)
-.order(
-"joined_at",
-{ascending:true}
-)
-
-if(error){
-
-console.log(error)
+if(!sessionId){
 
 return
 
 }
 
-setParticipants(data||[])
-
-}
-
-loadParticipants()
-
-const channel=
-supabase
-
-.channel(
-"participants-"+sessionId
-)
-
-.on(
-"postgres_changes",
-{
-event:"*",
-schema:"public",
-table:"participants",
-filter:`session_id=eq.${sessionId}`
-},
-(payload)=>{
+async function loadParticipants(){
 
 console.log(
-"Realtime:",
-payload
+"Loading for:",
+sessionId
 )
+
+const{
+data,
+error
+}
+=
+await supabase
+
+.from(
+"participants"
+)
+
+.select("*")
+
+.eq(
+"session_id",
+sessionId
+)
+
+if(error){
+
+console.log(
+error
+)
+
+return
+
+}
+
+console.log(
+"Participants:",
+data
+)
+
+setParticipants(
+data||[]
+)
+
+}
 
 loadParticipants()
 
-}
-)
+const interval=
 
-.subscribe()
+setInterval(
+loadParticipants,
+1000
+)
 
 return()=>{
 
-supabase.removeChannel(
-channel
+clearInterval(
+interval
 )
 
 }
@@ -427,19 +429,19 @@ Participants Live
 
 </h2>
 
-<p>
-
-Count:
-{participants.length}
-
-</p>
-
-<pre>
+<div>
 
 Current Session:
 {sessionId}
 
-</pre>
+</div>
+
+<div>
+
+Participant Count:
+{participants.length}
+
+</div>
 
 {
 participants.map(
@@ -449,9 +451,9 @@ participants.map(
 key={i}
 style={{
 
-padding:"8px",
-borderBottom:
-"1px solid #ddd"
+padding:"10px",
+margin:"5px",
+background:"#f4f4f4"
 
 }}
 >
@@ -461,6 +463,7 @@ borderBottom:
 </div>
 
 )
+
 }
 
 </div>
