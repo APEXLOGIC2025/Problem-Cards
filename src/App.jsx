@@ -50,8 +50,13 @@ setMarks
 const[
 sessionId,
 setSessionId
-]=useState("")
+]=useState(
 
+localStorage.getItem(
+"activeSession"
+)||""
+
+)
 const[
 joinLink,
 setJoinLink
@@ -69,89 +74,11 @@ setParticipants
 
 useEffect(()=>{
 
-const interval=
-
-setInterval(
-async()=>{
-
-if(!sessionId)return
-
-let {data}
-=
-await supabase
-.from("participants")
-.select("*")
-.eq(
-"session_id",
-sessionId
-)
-
-setParticipants(
-data||[]
-)
-
-},2000)
-
-return()=>clearInterval(
-interval
-)
-
-},[sessionId])
-
-useEffect(()=>{
-
-const channel=
-supabase
-.channel(
-"participants"
-)
-.on(
-"postgres_changes",
-{
-event:"*",
-schema:"public",
-table:"participants"
-},
-async ()=>{
-
-let {data}=
-await supabase
-.from("participants")
-.select("*")
-.eq(
-"session_id",
-sessionId
-)
-
-setParticipants(
-data||[]
-)
-
-}
-)
-.subscribe()
-
-return()=>{
-
-supabase
-.removeChannel(
-channel
-)
-
-}
-
-},[])
-
-useEffect(()=>{
-
 if(!sessionId)return
 
 async function loadParticipants(){
 
-const{
-data,
-error
-}
+let {data,error}
 =
 await supabase
 
@@ -167,14 +94,13 @@ sessionId)
 
 .order(
 "joined_at",
-{ascending:true}
-)
+{
+ascending:true
+})
 
 if(error){
 
-console.log(
-error
-)
+console.log(error)
 
 return
 
@@ -189,7 +115,6 @@ data||[]
 loadParticipants()
 
 const interval=
-
 setInterval(
 loadParticipants,
 2000
@@ -204,7 +129,6 @@ interval
 }
 
 },[sessionId])
-
 function handleExcel(e){
 
 const file=
@@ -256,6 +180,11 @@ Math.random()
 .toUpperCase()
 
 setSessionId(id)
+
+localStorage.setItem(
+"activeSession",
+id
+)
 
 const link=
 
