@@ -66,18 +66,6 @@ setParticipants
 
 useEffect(()=>{
 
-
-if(saved){
-
-setSessionId(saved)
-
-}
-
-},[])
-
-
-useEffect(()=>{
-
 if(sessionId){
 
 setJoinLink(
