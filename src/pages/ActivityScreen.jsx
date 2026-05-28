@@ -431,30 +431,28 @@ marginBottom:"30px"
 
 </h2>
 
-<div style={{display:"flex"}}>
+<div style={{display:"flex",flexWrap:"wrap"}}>
+
+{
+
+correctAnswers.map((a,i)=>(
 
 <DropBox
-id={q.id+"-0"}
-value={placed[q.id+"-0"]}
+
+key={i}
+
+id={q.id+"-"+i}
+
+value={placed[q.id+"-"+i]}
+
 />
 
-<DropBox
-id={q.id+"-1"}
-value={placed[q.id+"-1"]}
-/>
+))
 
-<DropBox
-id={q.id+"-2"}
-value={placed[q.id+"-2"]}
-/>
-
-<DropBox
-id={q.id+"-3"}
-value={placed[q.id+"-3"]}
-/>
+}
 
 </div>
-
+  
 <div>
 
 {
