@@ -401,8 +401,7 @@ q.right2,
 q.right3,
 q.right4
 
-]
-.filter(Boolean)
+].filter(Boolean)
 
 const options=[
 
@@ -424,14 +423,11 @@ q.option5
 return(
 
 <div
-key={q.id}
-
+key={index}
 style={{
-
 border:"1px solid #ddd",
 padding:"20px",
 marginBottom:"30px"
-
 }}
 >
 
@@ -441,7 +437,12 @@ marginBottom:"30px"
 
 </h2>
 
-<div style={{display:"flex",flexWrap:"wrap"}}>
+<div
+style={{
+display:"flex",
+flexWrap:"wrap"
+}}
+>
 
 {
 
@@ -462,21 +463,23 @@ value={placed[q.id+"-"+i]}
 }
 
 </div>
-  
+
 <div>
 
 {
 
-options.map((o,i)=>(
+options.map((o,optIndex)=>(
 
 <DragCard
 
-key={q.id+"-"+i}
+key={
+q.id+"-"+optIndex
+}
 
 id={
 q.id+
 "-"+
-i+
+optIndex+
 "-"+
 o
 }
@@ -491,55 +494,11 @@ label={o}
 
 </div>
 
-<button
-
-onClick={()=>
-submitQuestion(q,index)
-}
-
-disabled={
-completed[q.id]
-||
-(attempts[q.id]||0)>=5
-}
-
-style={{
-
-marginTop:"15px",
-padding:"10px"
-
-}}
->
-
-{
-
-completed[q.id]
-?
-"Completed"
-:
-"Submit Question"
-
-}
-
-</button>
-
-<div>
-
-Attempts:
-{attempts[q.id]||0}
-/5
-
-</div>
-
 </div>
 
 )
 
 })
-
-}
-
-</div>
 
 </DndContext>
 
