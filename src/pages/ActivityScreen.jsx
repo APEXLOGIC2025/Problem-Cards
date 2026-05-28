@@ -278,7 +278,6 @@ actualLabel
 
 async function submitAnswers(){
 
-
 if(submitted){
 
 alert(
@@ -290,14 +289,24 @@ return
 }
 
 
-let correct=0
+if(attemptNo>3){
+
+alert(
+"No attempts left"
+)
+
+return
+
+}
+
 
 let total=0
+let correct=0
 
 
 questions.forEach(q=>{
 
-const answers=[
+const correctAnswers=[
 
 q.right1,
 q.right2,
@@ -305,20 +314,45 @@ q.right3,
 q.right4
 
 ]
+
 .filter(Boolean)
+.map(
+x=>x.trim().toLowerCase()
+)
 
 
-answers.forEach(
-(a,i)=>{
+const userAnswers=[]
 
-total++
+
+correctAnswers.forEach((a,i)=>{
 
 const key=
 q.id+"-"+i
 
+if(
+placed[key]
+){
+
+userAnswers.push(
+
+placed[key]
+.trim()
+.toLowerCase()
+
+)
+
+}
+
+})
+
+
+total+=correctAnswers.length
+
+
+correctAnswers.forEach(ans=>{
 
 if(
-placed[key]===a
+userAnswers.includes(ans)
 ){
 
 correct++
@@ -334,7 +368,6 @@ const allCorrect=
 correct===total
 
 
-
 let score=0
 
 
@@ -343,23 +376,14 @@ if(allCorrect){
 let remaining=0
 
 
-if(
-attemptNo===1
-)
+if(attemptNo===1)
 remaining=100
 
-
-if(
-attemptNo===2
-)
+if(attemptNo===2)
 remaining=50
 
-
-if(
-attemptNo===3
-)
+if(attemptNo===3)
 remaining=25
-
 
 
 const attemptMarks=
@@ -368,34 +392,25 @@ remaining*
 0.40
 
 
-
 const{
 data:session
 }
 =
 await supabase
 
-.from(
-"sessions"
-)
+.from("sessions")
 
 .select("*")
 
-.eq(
-"id",
-id
-)
+.eq("id",id)
 
 .single()
 
 
+const allowedSeconds=
 
-const allowedTime=
-
-session.time_limit
-*
+session.time_limit*
 60
-
 
 
 const startTime=
@@ -407,8 +422,7 @@ localStorage.getItem(
 )
 
 
-
-const used=
+const usedSeconds=
 
 Math.floor(
 Date.now()/1000
@@ -417,20 +431,18 @@ Date.now()/1000
 startTime
 
 
-
 const ratio=
-used/
-allowedTime
+usedSeconds/
+allowedSeconds
 
 
 let timeMarks=
-remaining*0.60
+
+remaining*
+0.60
 
 
-
-if(
-ratio<=0.25
-){
+if(ratio<=0.25){
 
 timeMarks=
 timeMarks
@@ -454,7 +466,6 @@ timeMarks/4
 }
 
 
-
 score=
 
 attemptMarks+
@@ -469,12 +480,9 @@ score.toFixed(1)
 }
 
 
-
 await supabase
 
-.from(
-"submissions"
-)
+.from("submissions")
 
 .insert([{
 
@@ -498,22 +506,19 @@ Date.now()/1000
 }])
 
 
-if(
-allCorrect
-){
-
 await supabase
 
-.from(
-"participants"
-)
+.from("participants")
 
 .update({
 
 team_name:
 
-teamName+
-" | submitted"
+allCorrect
+?
+teamName+" | submitted"
+:
+teamName+" | attempt "+attemptNo
 
 })
 
@@ -528,20 +533,20 @@ teamName
 )
 
 
-setSubmitted(
-true
-)
+
+if(allCorrect){
+
+setSubmitted(true)
 
 alert(
-"Submitted Successfully Score:"+score
+"Correct Submission. Score: "+score
 )
 
 }
-
 else{
 
 alert(
-"Wrong submission. Try next attempt."
+"Wrong Answer"
 )
 
 setAttemptNo(
