@@ -319,7 +319,7 @@ const attemptFactor=
 attemptFactorMap[currentAttempt]
 
 const questionMarks=
-100/questions.length
+Number(q.marks || 0)
 
 const finalScore=
 Math.round(
