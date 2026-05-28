@@ -210,8 +210,9 @@ Date.now()/1000
 
 async function load(){
 
-let{
-data
+const{
+data,
+error
 }
 =
 await supabase
@@ -224,7 +225,21 @@ await supabase
 
 .eq(
 "session_id",
-id
+id)
+
+
+if(error){
+
+console.log(error)
+
+return
+
+}
+
+
+console.log(
+"Questions Loaded:",
+data
 )
 
 setQuestions(
@@ -232,48 +247,6 @@ data||[]
 )
 
 }
-
-
-
-function handleDragEnd(
-event
-){
-
-const{
-active,
-over
-}
-=
-event
-
-
-if(over){
-
-const actualLabel=
-
-active.id
-.split("-")
-.slice(2)
-.join("-")
-
-
-setPlaced(
-
-prev=>({
-
-...prev,
-
-[over.id]:
-actualLabel
-
-})
-
-)
-
-}
-
-}
-
 
 
 async function submitAnswers(){
@@ -302,6 +275,18 @@ return
 
 let total=0
 let correct=0
+
+if(
+questions.length===0
+){
+
+alert(
+"Questions not loaded yet"
+)
+
+return
+
+}
 
 
 questions.forEach(q=>{
@@ -365,6 +350,9 @@ correct++
 
 
 const allCorrect=
+
+total>0
+&&
 correct===total
 
 
