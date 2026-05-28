@@ -394,6 +394,16 @@ Activity
 
 questions.map((q,index)=>{
 
+const correctAnswers=[
+
+q.right1,
+q.right2,
+q.right3,
+q.right4
+
+]
+.filter(Boolean)
+
 const options=[
 
 q.right1,
