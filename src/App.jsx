@@ -9,6 +9,14 @@ import ActivityScreen from "./pages/ActivityScreen";
 
 export default function App(){
 
+useEffect(()=>{
+
+localStorage.removeItem(
+"startTime"
+)
+
+},[])
+
 const isJoin=
 window.location.pathname.includes("/join/")
 
@@ -58,10 +66,6 @@ setParticipants
 
 useEffect(()=>{
 
-const saved=
-localStorage.getItem(
-"activeSession"
-)
 
 if(saved){
 
@@ -222,12 +226,12 @@ Math.random()
 .substring(2,7)
 .toUpperCase()
 
-localStorage.setItem(
-"activeSession",
-id
-)
-
 setSessionId(id)
+setParticipants([])
+
+const link=
+window.location.origin+
+"/join/"+id
 
 await supabase
 .from("sessions")
