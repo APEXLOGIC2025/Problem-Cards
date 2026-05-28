@@ -27,6 +27,11 @@ localStorage.setItem(
 team
 )
 
+localStorage.setItem(
+"startTime",
+Date.now()
+)
+
 const {data,error}
 =
 await supabase
