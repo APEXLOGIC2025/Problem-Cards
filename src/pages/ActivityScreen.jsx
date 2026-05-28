@@ -27,11 +27,7 @@ const style={
 
 transform:transform
 ?
-`translate3d(
-${transform.x}px,
-${transform.y}px,
-0
-)`
+`translate3d(${transform.x}px,${transform.y}px,0)`
 :
 undefined,
 
@@ -42,9 +38,7 @@ touchAction:"none"
 return(
 
 <div
-
 ref={setNodeRef}
-
 {...listeners}
 {...attributes}
 
@@ -60,7 +54,6 @@ borderRadius:"8px",
 ...style
 
 }}
-
 >
 
 {label}
@@ -70,7 +63,6 @@ borderRadius:"8px",
 )
 
 }
-
 
 function DropBox({id,value}){
 
@@ -83,27 +75,19 @@ useDroppable({id})
 return(
 
 <div
-
 ref={setNodeRef}
 
 style={{
 
 width:"160px",
-height:"55px",
-
-border:
-"2px dashed gray",
-
+height:"50px",
+border:"2px dashed gray",
 margin:"10px",
-
 display:"flex",
-
 alignItems:"center",
-
 justifyContent:"center"
 
 }}
-
 >
 
 {value||"Drop Here"}
@@ -114,25 +98,22 @@ justifyContent:"center"
 
 }
 
-
-
 export default function ActivityScreen(){
-
 
 const sensors=
 useSensors(
 
-useSensor(
-PointerSensor
-),
+useSensor(PointerSensor),
 
 useSensor(
-TouchSensor,{
+TouchSensor,
+{
 activationConstraint:{
 delay:100,
 tolerance:5
 }
-})
+}
+)
 
 )
 
@@ -143,7 +124,6 @@ setQuestions
 =
 useState([])
 
-
 const[
 placed,
 setPlaced
@@ -151,62 +131,35 @@ setPlaced
 =
 useState({})
 
-
 const[
-attemptNo,
-setAttemptNo
+attempts,
+setAttempts
 ]
 =
-useState(1)
-
+useState({})
 
 const[
-submitted,
-setSubmitted
+completed,
+setCompleted
 ]
 =
-useState(false)
-
-
+useState({})
 
 const id=
-window.location
-.pathname
+window.location.pathname
 .split("/")
 .pop()
 
-
 const teamName=
-localStorage.getItem(
-"team"
-)
+localStorage.getItem("team")
 ||
 "Unknown"
-
-
 
 useEffect(()=>{
 
 load()
 
-if(
-!localStorage.getItem(
-"startTime"
-)
-){
-
-localStorage.setItem(
-"startTime",
-Math.floor(
-Date.now()/1000
-)
-)
-
-}
-
 },[])
-
-
 
 async function load(){
 
@@ -216,80 +169,67 @@ error
 }
 =
 await supabase
-
-.from(
-"activities"
-)
-
+.from("activities")
 .select("*")
-
-.eq(
-"session_id",
-id)
-
+.eq("session_id",id)
 
 if(error){
 
 console.log(error)
-
 return
 
 }
 
-
-console.log(
-"Questions Loaded:",
-data
-)
-
-setQuestions(
-data||[]
-)
+setQuestions(data||[])
 
 }
 
+function handleDragEnd(event){
 
-async function submitAnswers(){
+const{
+active,
+over
+}=event
 
-if(submitted){
+if(over){
 
-alert(
-"Already submitted"
-)
+const actual=
+active.id
+.split("-")
+.slice(2)
+.join("-")
 
+setPlaced(prev=>({
+
+...prev,
+
+[over.id]:
+actual
+
+}))
+
+}
+
+}
+
+async function submitQuestion(q,index){
+
+if(completed[q.id]){
+
+alert("Already Correct")
 return
 
 }
 
+const currentAttempt=
+(attempts[q.id]||0)+1
 
-if(attemptNo>3){
+if(currentAttempt>5){
 
-alert(
-"No attempts left"
-)
-
+alert("Max Attempts Over")
 return
 
 }
-
-
-let total=0
-let correct=0
-
-if(
-questions.length===0
-){
-
-alert(
-"Questions not loaded yet"
-)
-
-return
-
-}
-
-
-questions.forEach(q=>{
 
 const correctAnswers=[
 
@@ -299,271 +239,150 @@ q.right3,
 q.right4
 
 ]
-
 .filter(Boolean)
-.map(
-x=>x.trim().toLowerCase()
+.sort()
+
+const userAnswers=[
+
+placed[q.id+"-0"],
+placed[q.id+"-1"],
+placed[q.id+"-2"],
+placed[q.id+"-3"]
+
+]
+.filter(Boolean)
+.sort()
+
+const isCorrect=
+JSON.stringify(correctAnswers)
+===
+JSON.stringify(userAnswers)
+
+setAttempts(prev=>({
+
+...prev,
+
+[q.id]:
+currentAttempt
+
+}))
+
+if(!isCorrect){
+
+alert(
+"Wrong Answer Attempt "
++currentAttempt
 )
 
-
-const userAnswers=[]
-
-
-correctAnswers.forEach((a,i)=>{
-
-const key=
-q.id+"-"+i
-
-if(
-placed[key]
-){
-
-userAnswers.push(
-
-placed[key]
-.trim()
-.toLowerCase()
-
-)
+return
 
 }
 
-})
+const sessionMinutes=10
 
-
-total+=correctAnswers.length
-
-
-correctAnswers.forEach(ans=>{
-
-if(
-userAnswers.includes(ans)
-){
-
-correct++
-
-}
-
-})
-
-})
-
-
-const allCorrect=
-
-total>0
-&&
-correct===total
-
-
-let score=0
-
-
-if(allCorrect){
-
-let remaining=0
-
-
-if(attemptNo===1)
-remaining=100
-
-if(attemptNo===2)
-remaining=50
-
-if(attemptNo===3)
-remaining=25
-
-
-const attemptMarks=
-
-remaining*
-0.40
-
-
-const{
-data:session
-}
-=
-await supabase
-
-.from("sessions")
-
-.select("*")
-
-.eq("id",id)
-
-.single()
-
-
-const allowedSeconds=
-
-session.time_limit*
-60
-
+const perQuestionTime=
+(sessionMinutes*60)
+/questions.length
 
 const startTime=
-
 Number(
 localStorage.getItem(
 "startTime"
 )
 )
 
-
-const usedSeconds=
-
+const elapsed=
 Math.floor(
-Date.now()/1000
-)
--
-startTime
-
-
-const ratio=
-usedSeconds/
-allowedSeconds
-
-
-let timeMarks=
-
-remaining*
-0.60
-
-
-if(ratio<=0.25){
-
-timeMarks=
-timeMarks
-
-}
-
-else if(
-ratio<=0.50
-){
-
-timeMarks=
-timeMarks/2
-
-}
-
-else{
-
-timeMarks=
-timeMarks/4
-
-}
-
-
-score=
-
-attemptMarks+
-timeMarks
-
-
-score=
-Number(
-score.toFixed(1)
+(Date.now()-startTime)/1000
 )
 
+const remaining=
+Math.max(
+perQuestionTime-elapsed,
+0
+)
+
+const timeFactor=
+remaining/perQuestionTime
+
+const attemptFactorMap={
+
+1:1,
+2:0.9,
+3:0.8,
+4:0.7,
+5:0.6
+
 }
 
+const attemptFactor=
+attemptFactorMap[currentAttempt]
+
+const questionMarks=
+100/questions.length
+
+const finalScore=
+Math.round(
+
+questionMarks
+*
+timeFactor
+*
+attemptFactor
+
+)
 
 await supabase
-
 .from("submissions")
-
 .insert([{
 
-participant:
-teamName,
+participant:teamName,
 
-session_id:
-id,
+session_id:id,
 
-attempt:
-attemptNo,
+attempt:currentAttempt,
 
-score:
-score,
+score:finalScore,
 
-time_taken:
-Math.floor(
-Date.now()/1000
-)
+question_id:q.id
 
 }])
 
+setCompleted(prev=>({
+
+...prev,
+
+[q.id]:true
+
+}))
 
 await supabase
-
 .from("participants")
-
 .update({
 
 team_name:
-
-allCorrect
-?
-teamName+" | submitted"
-:
-teamName+" | attempt "+attemptNo
+teamName+
+" | submitted"
 
 })
-
-.eq(
-"session_id",
-id
-)
-
-.eq(
-"team_name",
-teamName
-)
-
-
-
-if(allCorrect){
-
-setSubmitted(true)
+.eq("session_id",id)
+.eq("team_name",teamName)
 
 alert(
-"Correct Submission. Score: "+score
+"Correct! Score: "
++finalScore
 )
 
 }
-else{
-
-alert(
-"Wrong Answer"
-)
-
-setAttemptNo(
-attemptNo+1
-)
-
-}
-
-}
-
-
 
 return(
 
 <DndContext
-
 sensors={sensors}
-
-onDragEnd={
-handleDragEnd
-}
-
+onDragEnd={handleDragEnd}
 >
 
-<div
-style={{
-padding:"20px"
-}}
->
+<div style={{padding:"20px"}}>
 
 <h1>
 
@@ -571,20 +390,9 @@ Activity
 
 </h1>
 
-
-<h3>
-
-Attempt:
-{attemptNo}/3
-
-</h3>
-
-
 {
 
-questions.map(
-(q,index)=>{
-
+questions.map((q,index)=>{
 
 const options=[
 
@@ -600,46 +408,21 @@ q.option4,
 q.option5
 
 ]
-
 .filter(Boolean)
-
-.sort(
-()=>Math.random()-0.5
-)
-
-
-
-const answers=[
-
-q.right1,
-q.right2,
-q.right3,
-q.right4
-
-]
-
-.filter(Boolean)
-
-
+.sort(()=>Math.random()-0.5)
 
 return(
 
 <div
-
-key={index}
+key={q.id}
 
 style={{
 
-border:
-"1px solid #ddd",
-
+border:"1px solid #ddd",
 padding:"20px",
-
-marginBottom:
-"30px"
+marginBottom:"30px"
 
 }}
-
 >
 
 <h2>
@@ -648,102 +431,105 @@ marginBottom:
 
 </h2>
 
-
-{
-
-answers.map(
-(a,i)=>
+<div style={{display:"flex"}}>
 
 <DropBox
-
-key={i}
-
-id={
-q.id+"-"+i
-}
-
-value={
-
-placed[
-q.id+"-"+i
-]
-
-}
-
+id={q.id+"-0"}
+value={placed[q.id+"-0"]}
 />
 
-)
+<DropBox
+id={q.id+"-1"}
+value={placed[q.id+"-1"]}
+/>
 
-}
+<DropBox
+id={q.id+"-2"}
+value={placed[q.id+"-2"]}
+/>
 
+<DropBox
+id={q.id+"-3"}
+value={placed[q.id+"-3"]}
+/>
+
+</div>
 
 <div>
 
 {
 
-options.map(
-(o,optIndex)=>
+options.map((o,i)=>(
 
 <DragCard
 
-key={
-q.id+
-"-"+
-optIndex
-}
+key={q.id+"-"+i}
 
 id={
 q.id+
 "-"+
-optIndex+
+i+
 "-"+
 o
 }
 
-label={
-o
-}
+label={o}
 
 />
 
-)
+))
 
 }
 
 </div>
-
-
-</div>
-
-)
-
-}
-
-)
-
-}
-
 
 <button
 
-onClick={
-submitAnswers
+onClick={()=>
+submitQuestion(q,index)
+}
+
+disabled={
+completed[q.id]
+||
+(attempts[q.id]||0)>=5
 }
 
 style={{
 
-padding:"12px",
-
-fontSize:"18px"
+marginTop:"15px",
+padding:"10px"
 
 }}
-
 >
 
-Submit Answers
+{
+
+completed[q.id]
+?
+"Completed"
+:
+"Submit Question"
+
+}
 
 </button>
 
+<div>
+
+Attempts:
+{attempts[q.id]||0}
+/5
+
+</div>
+
+</div>
+
+)
+
+})
+
+}
 
 </div>
 
