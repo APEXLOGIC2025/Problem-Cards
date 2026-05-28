@@ -26,10 +26,8 @@ useDraggable({id})
 const style={
 
 transform:transform
-?
-`translate3d(${transform.x}px,${transform.y}px,0)`
-:
-undefined,
+?`translate3d(${transform.x}px,${transform.y}px,0)`
+:undefined,
 
 touchAction:"none"
 
@@ -70,7 +68,9 @@ const{
 setNodeRef
 }
 =
-useDroppable({id})
+useDroppable({
+id
+})
 
 return(
 
@@ -79,10 +79,11 @@ ref={setNodeRef}
 
 style={{
 
-width:"160px",
+width:"140px",
 height:"50px",
 border:"2px dashed gray",
 margin:"10px",
+
 display:"flex",
 alignItems:"center",
 justifyContent:"center"
@@ -120,65 +121,48 @@ tolerance:5
 const[
 questions,
 setQuestions
-]
-=
-useState([])
+]=useState([])
 
 const[
 placed,
 setPlaced
-]
-=
-useState({})
+]=useState({})
 
 const[
 attempts,
 setAttempts
-]
-=
-useState({})
+]=useState({})
 
 const[
-completed,
-setCompleted
-]
-=
-useState({})
+teamName
+]=useState(
+localStorage.getItem("team")||"Unknown"
+)
 
-const id=
+const sessionId=
 window.location.pathname
 .split("/")
 .pop()
 
-const teamName=
-localStorage.getItem("team")
-||
-"Unknown"
-
 useEffect(()=>{
 
-load()
+loadQuestions()
 
 },[])
 
-async function load(){
+async function loadQuestions(){
 
 const{
-data,
-error
+data
 }
 =
 await supabase
 .from("activities")
 .select("*")
-.eq("session_id",id)
-
-if(error){
-
-console.log(error)
-return
-
-}
+.eq(
+"session_id",
+sessionId
+)
 
 setQuestions(data||[])
 
@@ -191,9 +175,9 @@ active,
 over
 }=event
 
-if(over){
+if(!over)return
 
-const actual=
+const actualLabel=
 active.id
 .split("-")
 .slice(2)
@@ -204,32 +188,22 @@ setPlaced(prev=>({
 ...prev,
 
 [over.id]:
-actual
+actualLabel
 
 }))
 
 }
 
-}
+async function submitAnswers(){
 
-async function submitQuestion(q,index){
+let totalScore=0
 
-if(completed[q.id]){
+const startTime=
+Number(
+localStorage.getItem("startTime")
+)
 
-alert("Already Correct")
-return
-
-}
-
-const currentAttempt=
-(attempts[q.id]||0)+1
-
-if(currentAttempt>5){
-
-alert("Max Attempts Over")
-return
-
-}
+for(let q of questions){
 
 const correctAnswers=[
 
@@ -238,25 +212,71 @@ q.right2,
 q.right3,
 q.right4
 
-]
-.filter(Boolean)
-.sort()
+].filter(Boolean)
 
-const userAnswers=[
+let userAnswers=[]
 
-placed[q.id+"-0"],
-placed[q.id+"-1"],
-placed[q.id+"-2"],
-placed[q.id+"-3"]
+for(let i=0;i<correctAnswers.length;i++){
 
-]
-.filter(Boolean)
-.sort()
+userAnswers.push(
+placed[q.id+"-"+i]
+)
+
+}
 
 const isCorrect=
-JSON.stringify(correctAnswers)
+
+JSON.stringify(
+[...userAnswers].sort()
+)
+
 ===
-JSON.stringify(userAnswers)
+
+JSON.stringify(
+[...correctAnswers].sort()
+)
+
+const prevAttempt=
+attempts[q.id]||0
+
+const currentAttempt=
+prevAttempt+1
+
+const questionTime=
+(10*60)/questions.length
+
+const elapsed=
+(Math.floor(Date.now()/1000))
+-
+Math.floor(startTime/1000)
+
+const remaining=
+Math.max(
+0,
+questionTime-elapsed
+)
+
+const timeFactor=
+remaining/questionTime
+
+const attemptFactor=
+1-((currentAttempt-1)*0.1)
+
+const questionMarks=
+Number(q.marks||0)
+
+let earned=0
+
+if(isCorrect){
+
+earned=
+questionMarks*
+timeFactor*
+attemptFactor
+
+}
+
+totalScore+=earned
 
 setAttempts(prev=>({
 
@@ -267,110 +287,46 @@ currentAttempt
 
 }))
 
-if(!isCorrect){
-
-alert(
-"Wrong Answer Attempt "
-+currentAttempt
-)
-
-return
-
-}
-
-const sessionMinutes=10
-
-const perQuestionTime=
-(sessionMinutes*60)
-/questions.length
-
-const startTime=
-Number(
-localStorage.getItem(
-"startTime"
-)
-)
-
-const elapsed=
-Math.floor(
-(Date.now()-startTime)/1000
-)
-
-const remaining=
-Math.max(
-perQuestionTime-elapsed,
-0
-)
-
-const timeFactor=
-remaining/perQuestionTime
-
-const attemptFactorMap={
-
-1:1,
-2:0.9,
-3:0.8,
-4:0.7,
-5:0.6
-
-}
-
-const attemptFactor=
-attemptFactorMap[currentAttempt]
-
-const questionMarks=
-Number(q.marks || 0)
-
-const finalScore=
-Math.round(
-
-questionMarks
-*
-timeFactor
-*
-attemptFactor
-
-)
-
 await supabase
 .from("submissions")
 .insert([{
 
 participant:teamName,
 
-session_id:id,
+session_id:sessionId,
+
+question_id:q.id,
 
 attempt:currentAttempt,
 
-score:finalScore,
+score:Math.round(earned),
 
-question_id:q.id
+time_taken:elapsed
 
 }])
 
-setCompleted(prev=>({
-
-...prev,
-
-[q.id]:true
-
-}))
+}
 
 await supabase
 .from("participants")
 .update({
 
 team_name:
-teamName+
-" | submitted"
+teamName+" | submitted"
 
 })
-.eq("session_id",id)
-.eq("team_name",teamName)
+.eq(
+"session_id",
+sessionId
+)
+.eq(
+"team_name",
+teamName
+)
 
 alert(
-"Correct! Score: "
-+finalScore
+"Submitted. Score: "+
+Math.round(totalScore)
 )
 
 }
@@ -382,7 +338,11 @@ sensors={sensors}
 onDragEnd={handleDragEnd}
 >
 
-<div style={{padding:"20px"}}>
+<div
+style={{
+padding:"20px"
+}}
+>
 
 <h1>
 
@@ -424,10 +384,13 @@ return(
 
 <div
 key={index}
+
 style={{
+
 border:"1px solid #ddd",
 padding:"20px",
 marginBottom:"30px"
+
 }}
 >
 
@@ -499,6 +462,26 @@ label={o}
 )
 
 })
+
+}
+
+<button
+
+onClick={submitAnswers}
+
+style={{
+
+padding:"12px",
+fontSize:"18px"
+
+}}
+>
+
+Submit Answers
+
+</button>
+
+</div>
 
 </DndContext>
 
