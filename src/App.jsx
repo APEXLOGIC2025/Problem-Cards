@@ -194,7 +194,7 @@ const data=
 XLSX.utils.sheet_to_json(
 sheet
 )
-
+console.log(data)
 setActivities(data)
 
 }
