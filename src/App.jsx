@@ -194,6 +194,15 @@ const data=
 XLSX.utils.sheet_to_json(
 sheet
 )
+
+console.log(
+Object.keys(data[0])
+)
+
+console.log(
+sheet["!ref"]
+)
+  
 console.log(
 "FIRST ROW",
 data[0]
