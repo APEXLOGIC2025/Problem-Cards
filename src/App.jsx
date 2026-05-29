@@ -192,9 +192,26 @@ workbook.SheetNames[0]
 
 const data=
 XLSX.utils.sheet_to_json(
-sheet
+sheet,
+{
+defval:""
+}
 )
+.map(row=>{
 
+const fixed={}
+
+Object.keys(row).forEach(key=>{
+
+fixed[
+key.trim()
+]=row[key]
+
+})
+
+return fixed
+
+})
 console.log(
 Object.keys(data[0])
 )
@@ -207,6 +224,11 @@ console.log(
 "FIRST ROW",
 data[0]
 )
+console.log(
+"HEADERS:",
+Object.keys(data[0])
+)
+  
 console.log(data)
 setActivities(data)
 
@@ -310,10 +332,10 @@ a["Option 5"]
 
 marks:
 Number(
-a.Marks ||
 a["Marks"] ||
 a["Marks "] ||
-a[" marks "] ||
+a[" marks"] ||
+a.Marks ||
 0
 )
 
