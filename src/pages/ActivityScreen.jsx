@@ -152,22 +152,19 @@ loadQuestions()
 
 async function loadQuestions(){
 
-const{
-data
-}
-=
+const { data,error } =
 await supabase
 .from("activities")
 .select("*")
-.eq(
-"session_id",
-sessionId
-)
+.eq("session_id",sessionId)
+
+console.log("SESSION =",sessionId)
+console.log("QUESTIONS =",data)
+console.log("ERROR =",error)
 
 setQuestions(data||[])
 
 }
-
 function handleDragEnd(event){
 
 const{
