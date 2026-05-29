@@ -200,6 +200,15 @@ Number(
 localStorage.getItem("startTime")
 )
 
+if(!startTime){
+
+localStorage.setItem(
+"startTime",
+Date.now()
+)
+
+}
+
 for(let q of questions){
 
 const correctAnswers=[
@@ -266,13 +275,22 @@ let earned=0
 
 if(isCorrect){
 
+console.log("CORRECT")
+
+console.log("questionMarks =",questionMarks)
+
+console.log("timeFactor =",timeFactor)
+
+console.log("attemptFactor =",attemptFactor)
+
 earned=
 questionMarks*
 timeFactor*
 attemptFactor
 
-}
+console.log("earned =",earned)
 
+}
 totalScore+=earned
 
 setAttempts(prev=>({
