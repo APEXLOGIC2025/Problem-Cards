@@ -194,6 +194,10 @@ const data=
 XLSX.utils.sheet_to_json(
 sheet
 )
+console.log(
+"FIRST ROW",
+data[0]
+)
 console.log(data)
 setActivities(data)
 
@@ -296,7 +300,13 @@ a["Option 5"]
 ,
 
 marks:
-a.Marks || 0
+Number(
+a.Marks ||
+a["Marks"] ||
+a["Marks "] ||
+a[" marks "] ||
+0
+)
 
 }])
 
