@@ -164,6 +164,11 @@ console.log("ERROR =",error)
 
 setQuestions(data||[])
 
+console.log(
+"QUESTIONS:",
+data
+)
+
 }
 function handleDragEnd(event){
 
