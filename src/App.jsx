@@ -280,7 +280,10 @@ marks
 for(
 let a of activities
 ){
-
+console.log(
+"INSERTING MARKS:",
+a.Score
+)
 await supabase
 .from(
 "activities"
@@ -332,10 +335,10 @@ a["Option 5"]
 
 marks:
 Number(
-a["Marks"] ||
-a["Marks "] ||
-a[" marks"] ||
+a.Score ||
+a.score ||
 a.Marks ||
+a.marks ||
 0
 )
 
